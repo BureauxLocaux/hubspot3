@@ -37,11 +37,23 @@ class CompaniesClient(BaseClient):
     def get(self, companyid, **options):
         return self._call("companies/{}".format(companyid), method="GET", **options)
 
-    def get_all(self, **options):
+    def get_all(self, extra_props=None, **options):
         finished = False
         output = []
         offset = 0
         querylimit = 250  # Max value according to docs
+        properties = [
+            "name",
+            "description",
+            "address",
+            "address2",
+            "city",
+            "state",
+            "story",
+            "hubspot_owner_id",
+        ]
+        properties.extend(extra_props or [])
+
         while not finished:
             batch = self._call(
                 "companies/paged",
@@ -50,16 +62,7 @@ class CompaniesClient(BaseClient):
                 params={
                     "limit": querylimit,
                     "offset": offset,
-                    "properties": [
-                        "name",
-                        "description",
-                        "address",
-                        "address2",
-                        "city",
-                        "state",
-                        "story",
-                        "hubspot_owner_id",
-                    ],
+                    "properties": properties,
                 },
                 **options
             )
@@ -74,3 +77,10 @@ class CompaniesClient(BaseClient):
             offset = batch["offset"]
 
         return output
+
+    def delete(self, companyid, **options):
+        return self._call("companies/{}".format(companyid), method="DELETE", **options)
+
+    def delete_all(self, **options):
+        for company in self.get_all(**options):
+            self.delete(company['id'])
