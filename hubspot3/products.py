@@ -20,8 +20,9 @@ class ProductsClient(BaseClient):
         self.log = logging_helper.get_log("hapi.products")
 
     def _get_path(self, subpath):
-        return "/crm-objects/v{}/objects/products/{}".format(PRODUCTS_API_VERSION, subpath)
+        return "crm-objects/v{}/objects/products/{}".format(PRODUCTS_API_VERSION, subpath)
 
+    # FIXME: Allow to add property.
     def get_all(self, **options):
         finished = False
         output = []
@@ -30,15 +31,68 @@ class ProductsClient(BaseClient):
             batch = self._call(
                 "paged", method="GET", params={"offset": offset}, **options
             )
-            finished = not batch["has-more"]
+            finished = not batch["hasMore"]
             offset = batch["offset"]
+            output.extend(
+                [
+                    prettify(product, id_key="objectId")
+                    for product in batch["objects"]
+                    if not product["isDeleted"]
+                ]
+            )
 
         return output
 
-    def get_product_by_id(self, product_id, **options):
-        """Gets product specified by ID"""
+    def get_product_batch(self, product_ids, extra_properties=None, **options):
+
+        # Default properties to fetch.
+        properties = [
+            'name',
+            'price',
+        ]
+        # Append extras if they exist.
+        if extra_properties and isinstance(extra_properties, list):
+            properties += extra_properties
+
         return self._call(
-            "{}".format(product_id), method="GET", **options
+            'batch-read',
+            data={
+                'ids': product_ids,
+            },
+            method='POST',
+            params=[('properties', property_name) for property_name in properties],
+            **options,
+        )
+
+    # TODO: Expose a named parameter for `properties`?
+    def get_product_by_id(self, product_id, **options):
+        """
+        Gets product specified by ID.
+
+        By default, the hubspot API only return the ID of the product as well as few other system
+        fields. It is possible to specify the product properties we want to include into the
+        response by using the `properties` parameters. This parameter could be included multiple
+        times to request multiple properties.
+
+        The following query:
+        ```
+        https://api.hubapi.com/crm-objects/v1/objects/products/1642767?hapikey=demo&properties=name&properties=description&properties=price  # noqa
+        ```
+        could be reproduced by using the client like this:
+        ```
+        products_client.get_product_by_id(
+            '24349431',
+            params=[
+                ('properties', 'name'),
+                ('properties', 'description'),
+                ('properties', 'price'),
+            ])
+        ```
+        """
+        return self._call(
+            "{}".format(product_id),
+            method="GET",
+            **options,
         )
 
     def _prepare_creation_data(self, data):

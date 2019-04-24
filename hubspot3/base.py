@@ -83,14 +83,31 @@ class BaseClient(object):
 
     def _prepare_request_auth(self, subpath, params, data, opts):
         if self.api_key:
-            params["hapikey"] = params.get("hapikey") or self.api_key
+            try:
+                params["hapikey"] = params.get("hapikey") or self.api_key
+            except AttributeError:
+                # According to the documentation of `urlencode`, the method accept both dict and
+                # sequence of tuple (which could be usefull to generate GET parameters such as
+                # list: `?properties=name&properties=price`.
+                if not [value for key, value in params if key is 'hapikey']:
+                    params.append(('hapikey', self.api_key))
         else:
             # Be sure that we're consistent about what access_token is being used
             # If one was provided at instantiation, that is always used.  If it was not
             # but one was provided as part of the method invocation, we persist it
-            if params.get("access_token") and not self.access_token:
-                self.access_token = params.get("access_token")
-            params["access_token"] = self.access_token
+            try:
+                if params.get("access_token") and not self.access_token:
+                    self.access_token = params.get("access_token")
+                params["access_token"] = self.access_token
+            except AttributeError:
+                access_token = [value for key, value in params if key is 'access_token']
+                if access_token and not self.access_token:
+                    self.access_token = access_token[0]
+                elif not access_token:
+                    # FIXME: It could be none... Maybe we should log an error.
+                    params.append(('access_token', self.access_token))
+                # FIXME: Here we should replace the value of an existing `access_token` in param
+                # FIXME: if self.access_token.
 
     def _prepare_request(self, subpath, params, data, opts, doseq=False, query=""):
         params = params or {}

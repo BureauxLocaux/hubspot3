@@ -15,6 +15,7 @@ from hubspot3.utils import prettify
 PROPERTY_GROUPS_API_VERSION = {
     OBJECT_TYPE_COMPANIES: '1',
     OBJECT_TYPE_CONTACTS: '1',
+    OBJECT_TYPE_DEALS: '1',
     OBJECT_TYPE_PRODUCTS: '2',
     OBJECT_TYPE_DEALS: '1',
 }

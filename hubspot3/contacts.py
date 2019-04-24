@@ -154,6 +154,46 @@ class ContactsClient(BaseClient):
 
         return output
 
+    def search(self, search_query, **options):
+        """
+        Search among contacts for matches with the given `search_query`.
+
+        Cf: https://developers.hubspot.com/docs/methods/contacts/search_contacts
+
+        Parameters
+        ----------
+        search_query: str
+
+        Returns
+        -------
+        list of dict
+            The result of the search as a list of contacts.
+        """
+        finished = False
+        offset = 0
+        query_limit = 100       # Max value according to docs
+
+        output = []
+
+        while not finished:
+            batch = self._call(
+                "search/query",
+                method="GET",
+                params={
+                    "count": query_limit,
+                    "offset": offset,
+                    "q": search_query,
+                },
+                **options,
+            )
+
+            output += batch['contacts']
+
+            finished = not batch["has-more"]
+            offset = batch["offset"]
+
+        return output
+
     def delete_all(self):
         for contact in self.get_all():
             self.delete_a_contact(contact['vid'])
