@@ -20,7 +20,7 @@ class ProductsClient(BaseClient):
         self.log = logging_helper.get_log("hapi.products")
 
     def _get_path(self, subpath):
-        return "crm-objects/v{}/objects/products/{}".format(PRODUCTS_API_VERSION, subpath)
+        return "/crm-objects/v{}/objects/products/{}".format(PRODUCTS_API_VERSION, subpath)
 
     def get_all(self, **options):
         finished = False
@@ -41,10 +41,19 @@ class ProductsClient(BaseClient):
             "{}".format(product_id), method="GET", **options
         )
 
+    def _prepare_creation_data(self, data):
+        """
+        See: https://developers.hubspot.com/docs/methods/products/create-product
+        """
+        return [
+            {'name': name, 'value': value}
+            for name, value in data.items()
+        ]
+
     def create(self, data=None, **options):
         data = data or {}
         return self._call(
-            "", data=data, method="POST", **options
+            "", data=self._prepare_creation_data(data), method="POST", **options
         )
 
     def update(self, product_id, data=None, **options):
@@ -58,7 +67,6 @@ class ProductsClient(BaseClient):
         return self._call(
             "{}".format(product_id), method="DELETE", **options
         )
-
 
     def get_recently_modified(self, offset=0, since=None, **options):
         """

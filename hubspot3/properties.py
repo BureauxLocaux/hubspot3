@@ -6,6 +6,7 @@ from hubspot3.base import BaseClient
 from hubspot3.globals import (
     OBJECT_TYPE_COMPANIES,
     OBJECT_TYPE_CONTACTS,
+    OBJECT_TYPE_DEALS,
     OBJECT_TYPE_PRODUCTS,
     VALID_PROPERTY_DATA_TYPES,
     VALID_PROPERTY_WIDGET_TYPES,
@@ -16,6 +17,7 @@ from hubspot3.utils import prettify
 PROPERTIES_API_VERSION = {
     OBJECT_TYPE_COMPANIES: '1',
     OBJECT_TYPE_CONTACTS: '1',
+    OBJECT_TYPE_DEALS: '1',
     OBJECT_TYPE_PRODUCTS: '2',
 }
 
@@ -31,7 +33,7 @@ class PropertiesClient(BaseClient):
         self.log = logging_helper.get_log("hapi.properties")
 
     def _get_path(self, subpath):
-        return "properties/v{}/{}/properties/{}".format(
+        return "/properties/v{}/{}/properties/{}".format(
             PROPERTIES_API_VERSION[self.object_type],
             self.object_type,
             subpath,

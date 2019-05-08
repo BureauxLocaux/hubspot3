@@ -105,8 +105,10 @@ class BaseClient(object):
         if query and not query.startswith("&"):
             query = "&" + query
 
-        url = opts.get("url") or "{}?{}{}".format(
-            self._get_path(subpath), urllib.parse.urlencode(params, doseq), query
+        url = opts.get("url") or "/{}?{}{}".format(
+            self._get_path(subpath),
+            urllib.parse.urlencode(params, doseq),
+            query,
         )
 
         headers = opts.get("headers") or {}
