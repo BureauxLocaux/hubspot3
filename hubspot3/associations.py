@@ -16,11 +16,13 @@ ASSOCIATIONS_API_VERSION = '1'
 ASSOCIATION_CATEGORY = 'HUBSPOT_DEFINED'  # see: https://developers.hubspot.com/docs/methods/crm-associations/associate-objects  # noqa
 
 ASSOCIATION_DEFINITION_COMPANY_TO_CONTACT = 'company_to_contact'
+ASSOCIATION_DEFINITION_COMPANY_TO_DEAL = 'company_to_deal'
 ASSOCIATION_DEFINITION_DEAL_TO_LINE = 'deal_to_line_item'
 
 # Cf: https://developers.hubspot.com/docs/methods/crm-associations/crm-associations-overview
 ASSOCIATION_DEFINITIONS = {
     ASSOCIATION_DEFINITION_COMPANY_TO_CONTACT: 2,
+    ASSOCIATION_DEFINITION_COMPANY_TO_DEAL: 6,
     ASSOCIATION_DEFINITION_DEAL_TO_LINE: 19,
 }
 
@@ -132,6 +134,15 @@ class AssociationsClient(BaseClient):
             object_id=company_id,
             params=params,
             definition_id=ASSOCIATION_DEFINITIONS[ASSOCIATION_DEFINITION_COMPANY_TO_CONTACT],
+            **options,
+        )
+
+    def get_company_to_deals(self, company_id, params=None, **options):
+        """Get the deals related to a company."""
+        return self.get_association_for_crm_object(
+            object_id=company_id,
+            params=params,
+            definition_id=ASSOCIATION_DEFINITIONS[ASSOCIATION_DEFINITION_COMPANY_TO_DEAL],
             **options,
         )
 
